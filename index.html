@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scrollable Log with Text Entry</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: 90vh; /* Set the height to 1/4 of the viewport height */
+            overflow: hidden;
+        }
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-basis: 50%;
+        }
+        
+        .log {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #f4f4f4;
+            padding: 10px;
+        }
+        
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #ddd;
+        }
+        
+        .input-box {
+            flex-grow: 1;
+            padding: 5px;
+        }
+        .enter-button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #555;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .viz-panel {
+            flex-grow: 1;
+            flex-wrap: wrap;
+            background-color: #ccc;
+            padding: 10px;
+            flex-basis: 50%;
+            justify-content: center;
+            align-content: center;
+            align-items: center;
+        }
+        canvas { 
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script> <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@v0.154.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@v0.154.0/examples/jsm/" } } </script>
+</head>
+<body>
+    <div class="container">
+        <div class="text-panel">
+            <div class="log" id="log"></div>
+            <div class="input-container">
+                <input class="input-box" type="text" id="input" onkeydown="handleKeyDown(event)">
+                <button class="enter-button" onclick="handleButtonClick()">Enter</button>
+            </div>
+        </div>
+        <div class="viz-panel" id="viz-panel">
+            <canvas></canvas>
+        </div>
+    </div>
+    
+
+    <script language="JavaScript" type="text/javascript" src="js/wumpus.js"></script>
+    <script type="module" type=module src="js/viz.js"></script>
+</body>
+</html>
