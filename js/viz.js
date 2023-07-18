@@ -17,8 +17,19 @@ const material = new THREE.MeshPhongMaterial({
   shading: THREE.SmoothShading
 });
 
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+const player_geo = new THREE.TetrahedronGeometry(25)
+const player_mat = new THREE.MeshPhongMaterial({
+  color: 0xF5F555,
+  specular: 0xffffff,
+  shininess: 30,
+  shading: THREE.SmoothShading
+});
+const player = new THREE.Mesh( player_geo, player_mat ); 
+const world = new THREE.Mesh(geometry, material);
+scene.add(world);
+world.add( player );
+player.position.set(0,50,150);
+player.rotation.set(15,15,0)
 
 const light1 = new THREE.PointLight(0xff80C0, 2, 0);
 light1.position.set(200, 100, 300);
@@ -40,8 +51,8 @@ function resizeCanvasToDisplaySize() {
 function animate(time) {
   time *= 0.001;  // seconds
 
-  mesh.rotation.x = time * 0.5;
-  mesh.rotation.y = time * 1;
+  world.rotation.x = time * 0.5;
+  world.rotation.y = time * 1;
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
@@ -51,4 +62,3 @@ requestAnimationFrame(animate);
 
 const resizeObserver = new ResizeObserver(resizeCanvasToDisplaySize);
 resizeObserver.observe(renderer.domElement, {box: 'content-box'});
-
