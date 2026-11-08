@@ -60,41 +60,186 @@ export class MarkerManager {
     _createWumpusMesh() {
         const group = new THREE.Group();
 
-        // Beast body: spiked icosahedron
-        const bodyGeom = new THREE.IcosahedronGeometry(22, 1);
-        const bodyMat = new THREE.MeshStandardMaterial({
-            color: 0xff1133,
-            emissive: 0x660011,
+        // 1. Hunched Muscular Demon Body
+        const torsoGeom = new THREE.DodecahedronGeometry(20, 1);
+        const hideMat = new THREE.MeshStandardMaterial({
+            color: 0x1a0606,
+            emissive: 0x330005,
+            roughness: 0.9,
+            metalness: 0.3,
+            flatShading: true
+        });
+        const torso = new THREE.Mesh(torsoGeom, hideMat);
+        torso.scale.set(1.1, 1.25, 0.95);
+        group.add(torso);
+
+        // Dorsal Spines along spine
+        const spineMat = new THREE.MeshStandardMaterial({ color: 0x0d0303, roughness: 0.7 });
+        for (let i = 0; i < 4; i++) {
+            const spineGeom = new THREE.ConeGeometry(3.5 - i * 0.5, 14 - i * 2, 5);
+            const spine = new THREE.Mesh(spineGeom, spineMat);
+            spine.position.set(0, 10 - i * 7, -12 - i * 2);
+            spine.rotation.x = -0.5 - i * 0.15;
+            group.add(spine);
+        }
+
+        // 2. Menacing Head with Heavy Brow
+        const headGroup = new THREE.Group();
+        headGroup.position.set(0, 6, 12);
+
+        const skullGeom = new THREE.BoxGeometry(18, 14, 18);
+        const skull = new THREE.Mesh(skullGeom, hideMat);
+        headGroup.add(skull);
+
+        // Heavy Brow Ridge
+        const browGeom = new THREE.BoxGeometry(20, 4, 8);
+        const browMat = new THREE.MeshStandardMaterial({ color: 0x0f0202, roughness: 0.95 });
+        const brow = new THREE.Mesh(browGeom, browMat);
+        brow.position.set(0, 5, 8);
+        headGroup.add(brow);
+
+        // 3. Piercing Predatory Eyes (4 eyes)
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff1a00 });
+        const eyeGeom = new THREE.SphereGeometry(2.8, 10, 10);
+        
+        // Primary glowing eyes
+        const eyeL = new THREE.Mesh(eyeGeom, eyeMat);
+        eyeL.position.set(-6, 2, 9.5);
+        const eyeR = new THREE.Mesh(eyeGeom, eyeMat);
+        eyeR.position.set(6, 2, 9.5);
+        headGroup.add(eyeL);
+        headGroup.add(eyeR);
+
+        // Secondary smaller sinister eyes
+        const subEyeMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+        const subEyeGeom = new THREE.SphereGeometry(1.6, 8, 8);
+        const subEyeL = new THREE.Mesh(subEyeGeom, subEyeMat);
+        subEyeL.position.set(-8.5, 4.5, 8.5);
+        const subEyeR = new THREE.Mesh(subEyeGeom, subEyeMat);
+        subEyeR.position.set(8.5, 4.5, 8.5);
+        headGroup.add(subEyeL);
+        headGroup.add(subEyeR);
+
+        // Menacing crimson eye glow light
+        const eyeGlow = new THREE.PointLight(0xff1100, 2.0, 90);
+        eyeGlow.position.set(0, 2, 16);
+        headGroup.add(eyeGlow);
+
+        // 4. Gaping Maw & Lethal Fangs
+        const mouthCavityGeom = new THREE.BoxGeometry(13, 8, 8);
+        const mouthCavityMat = new THREE.MeshBasicMaterial({ color: 0x050000 });
+        const mouthCavity = new THREE.Mesh(mouthCavityGeom, mouthCavityMat);
+        mouthCavity.position.set(0, -3, 8);
+        headGroup.add(mouthCavity);
+
+        // Upper Sabre Fangs
+        const fangMat = new THREE.MeshStandardMaterial({
+            color: 0xfffff2,
+            roughness: 0.2,
+            metalness: 0.1
+        });
+        const mainFangGeom = new THREE.ConeGeometry(2.2, 11, 6);
+        const uFangL = new THREE.Mesh(mainFangGeom, fangMat);
+        uFangL.position.set(-5, -3, 11);
+        uFangL.rotation.x = Math.PI;
+        uFangL.rotation.z = -0.15;
+        headGroup.add(uFangL);
+
+        const uFangR = new THREE.Mesh(mainFangGeom, fangMat);
+        uFangR.position.set(5, -3, 11);
+        uFangR.rotation.x = Math.PI;
+        uFangR.rotation.z = 0.15;
+        headGroup.add(uFangR);
+
+        // Serrated upper teeth
+        for (let x = -3; x <= 3; x += 2) {
+            const tooth = new THREE.Mesh(new THREE.ConeGeometry(1.1, 5, 4), fangMat);
+            tooth.position.set(x, -2, 11);
+            tooth.rotation.x = Math.PI;
+            headGroup.add(tooth);
+        }
+
+        // Hinged Aggressive Lower Jaw
+        const jawGroup = new THREE.Group();
+        jawGroup.position.set(0, -6, 4);
+        jawGroup.rotation.x = 0.35; // opened wide
+
+        const jawMesh = new THREE.Mesh(new THREE.BoxGeometry(15, 5, 14), hideMat);
+        jawMesh.position.set(0, 0, 6);
+        jawGroup.add(jawMesh);
+
+        // Lower Tusks pointing up
+        const lTuskL = new THREE.Mesh(mainFangGeom, fangMat);
+        lTuskL.position.set(-5, 3, 11);
+        lTuskL.rotation.z = 0.2;
+        jawGroup.add(lTuskL);
+
+        const lTuskR = new THREE.Mesh(mainFangGeom, fangMat);
+        lTuskR.position.set(5, 3, 11);
+        lTuskR.rotation.z = -0.2;
+        jawGroup.add(lTuskR);
+
+        headGroup.add(jawGroup);
+        group.add(headGroup);
+
+        // 5. Massive Curved Demon Horns
+        const hornMat = new THREE.MeshStandardMaterial({
+            color: 0x0c0c0e,
             roughness: 0.4,
             metalness: 0.6
         });
-        const body = new THREE.Mesh(bodyGeom, bodyMat);
-        group.add(body);
-
-        // Horns
-        const hornGeom = new THREE.ConeGeometry(5, 18, 5);
-        const hornMat = new THREE.MeshStandardMaterial({ color: 0x220000 });
         
-        const horn1 = new THREE.Mesh(hornGeom, hornMat);
-        horn1.position.set(-10, 16, 5);
-        horn1.rotation.z = -0.3;
-        group.add(horn1);
+        const createCurvedHorn = (isLeft) => {
+            const horn = new THREE.Group();
+            const segments = 5;
+            for (let i = 0; i < segments; i++) {
+                const rBase = 4.5 * (1 - i / segments);
+                const rTop = 4.5 * (1 - (i + 1) / segments);
+                const segGeom = new THREE.CylinderGeometry(rTop, rBase, 8, 8);
+                const seg = new THREE.Mesh(segGeom, hornMat);
+                seg.position.set(0, i * 6.5, 0);
+                seg.rotation.z = (isLeft ? -0.18 : 0.18) * (i + 1);
+                seg.rotation.x = -0.08 * (i + 1);
+                horn.add(seg);
+            }
+            horn.position.set(isLeft ? -10 : 10, 12, 6);
+            horn.rotation.z = isLeft ? -0.4 : 0.4;
+            horn.rotation.y = isLeft ? -0.2 : 0.2;
+            return horn;
+        };
 
-        const horn2 = new THREE.Mesh(hornGeom, hornMat);
-        horn2.position.set(10, 16, 5);
-        horn2.rotation.z = 0.3;
-        group.add(horn2);
+        group.add(createCurvedHorn(true));
+        group.add(createCurvedHorn(false));
 
-        // Glowing eyes
-        const eyeGeom = new THREE.SphereGeometry(3, 8, 8);
-        const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const eye1 = new THREE.Mesh(eyeGeom, eyeMat);
-        eye1.position.set(-6, 4, 18);
-        const eye2 = new THREE.Mesh(eyeGeom, eyeMat);
-        eye2.position.set(6, 4, 18);
-        group.add(eye1);
-        group.add(eye2);
+        // 6. Demonic Claws Reaching Outward
+        const createClawHand = (isLeft) => {
+            const arm = new THREE.Group();
+            const armMesh = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 3.5, 16, 8), hideMat);
+            armMesh.position.set(0, -6, 6);
+            armMesh.rotation.x = 0.8;
+            arm.add(armMesh);
 
+            const talonMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.3 });
+            for (let t = -1; t <= 1; t++) {
+                const talon = new THREE.Mesh(new THREE.ConeGeometry(1.6, 9, 5), talonMat);
+                talon.position.set(t * 3, -12, 14);
+                talon.rotation.x = 1.3;
+                talon.rotation.z = t * 0.2;
+                arm.add(talon);
+            }
+
+            arm.position.set(isLeft ? -16 : 16, 0, 4);
+            arm.rotation.y = isLeft ? 0.3 : -0.3;
+            return arm;
+        };
+
+        const leftArm = createClawHand(true);
+        const rightArm = createClawHand(false);
+        group.add(leftArm);
+        group.add(rightArm);
+
+        // Store animated parts in userData
+        group.userData = { jawGroup, headGroup, eyeGlow, leftArm, rightArm };
         group.name = 'wumpus';
         return group;
     }
@@ -244,10 +389,30 @@ export class MarkerManager {
     update(time) {
         const now = performance.now();
 
-        // Idle animations: Wumpus breathing
+        // Idle animations: Wumpus menacing presence
         if (this.wumpusMesh.visible) {
-            const scale = 1 + 0.08 * Math.sin(time * 3);
-            this.wumpusMesh.scale.set(scale, scale, scale);
+            const scale = 1 + 0.04 * Math.sin(time * 2.5);
+            this.wumpusMesh.scale.set(scale, scale * 1.02, scale);
+
+            const { jawGroup, headGroup, eyeGlow, leftArm, rightArm } = this.wumpusMesh.userData;
+            if (jawGroup) {
+                // Jaw breathing & menacing snap
+                jawGroup.rotation.x = 0.35 + 0.08 * Math.sin(time * 3);
+            }
+            if (headGroup) {
+                // Subtle head predatory sway
+                headGroup.rotation.y = 0.08 * Math.sin(time * 1.5);
+                headGroup.rotation.x = 0.04 * Math.cos(time * 2);
+            }
+            if (leftArm && rightArm) {
+                // Claws flex/tense
+                leftArm.rotation.z = 0.06 * Math.sin(time * 2.5);
+                rightArm.rotation.z = -0.06 * Math.sin(time * 2.5);
+            }
+            if (eyeGlow) {
+                // Pulsing ominous eye light
+                eyeGlow.intensity = 1.8 + 0.8 * Math.sin(time * 4);
+            }
         }
 
         // Idle animations: Bat wing flaps

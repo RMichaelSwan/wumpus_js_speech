@@ -42,12 +42,18 @@ export class WumpusViz {
         }
 
         // Lighting
+        this.ambientLight = null;
         this._setupLighting();
 
         // Subsystems
-        this.caveGraph = new CaveGraph(this.scene, this.mapData);
+        this.caveGraph = new CaveGraph(this.scene, this.mapData, 'solid_green');
+        this.caveGraph.setTheme('solid_green', this.scene, this.ambientLight);
         this.markers = new MarkerManager(this.scene);
         this.difficulty = new DifficultyManager();
+
+        // Auto-Zoom on move (default ON)
+        this.autoZoom = true;
+        this.cameraAnimation = null;
 
         // Raycasting & Tap interaction
         this.raycaster = new THREE.Raycaster();
@@ -67,8 +73,8 @@ export class WumpusViz {
     }
 
     _setupLighting() {
-        const ambientLight = new THREE.AmbientLight(0xddeeff, 0.7);
-        this.scene.add(ambientLight);
+        this.ambientLight = new THREE.AmbientLight(0xddffdd, 0.8);
+        this.scene.add(this.ambientLight);
 
         const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight1.position.set(200, 300, 250);
@@ -100,6 +106,7 @@ export class WumpusViz {
         };
 
         const onPointerDown = (e) => {
+            this.cameraAnimation = null; // Yield to user manual orbit
             const p = getPointerPos(e);
             this._dragStartPos.set(p.rawX, p.rawY);
             this._isDragging = false;
@@ -213,6 +220,44 @@ export class WumpusViz {
         this.difficulty.setMode(mode);
     }
 
+    setAutoZoom(enabled) {
+        this.autoZoom = Boolean(enabled);
+        if (!this.autoZoom) {
+            this.cameraAnimation = null;
+        }
+    }
+
+    setTheme(themeKey) {
+        if (!this.caveGraph) return;
+        this.caveGraph.setTheme(themeKey, this.scene, this.ambientLight);
+    }
+
+    /**
+     * Smoothly zoom and orient the camera to face the player's current room
+     */
+    focusOnRoom(roomId, smooth = true) {
+        if (!this.autoZoom || !this.isSupported || !this.caveGraph.nodeMeshes.has(roomId)) return;
+
+        const node = this.caveGraph.nodeMeshes.get(roomId);
+        const normal = node.position.clone().normalize();
+        const targetRadius = 300; // closer zoom on the room (default is ~420)
+        const targetPos = normal.multiplyScalar(targetRadius);
+
+        if (!smooth) {
+            this.camera.position.copy(targetPos);
+            this.camera.lookAt(0, 0, 0);
+            if (this.controls) this.controls.target.set(0, 0, 0);
+            return;
+        }
+
+        this.cameraAnimation = {
+            startPos: this.camera.position.clone(),
+            targetPos: targetPos,
+            startTime: performance.now(),
+            duration: 650 // ms
+        };
+    }
+
     /**
      * Animate moving player along path
      */
@@ -244,7 +289,34 @@ export class WumpusViz {
         const delta = (time - this._lastTime) * 0.001;
         this._lastTime = time;
 
-        if (this.controls) this.controls.update();
+        // Smooth camera zoom animation on move
+        if (this.cameraAnimation) {
+            const now = performance.now();
+            const elapsed = now - this.cameraAnimation.startTime;
+            const t = Math.min(1, elapsed / this.cameraAnimation.duration);
+            const ease = 0.5 - 0.5 * Math.cos(Math.PI * t); // smooth in-out
+
+            const p0 = this.cameraAnimation.startPos;
+            const p1 = this.cameraAnimation.targetPos;
+
+            const dir0 = p0.clone().normalize();
+            const dir1 = p1.clone().normalize();
+            const currDir = new THREE.Vector3().lerpVectors(dir0, dir1, ease).normalize();
+            const currDist = THREE.MathUtils.lerp(p0.length(), p1.length(), ease);
+            this.camera.position.copy(currDir.multiplyScalar(currDist));
+            this.camera.lookAt(0, 0, 0);
+
+            if (this.controls) {
+                this.controls.target.set(0, 0, 0);
+                this.controls.update();
+            }
+
+            if (t >= 1) {
+                this.cameraAnimation = null;
+            }
+        } else {
+            if (this.controls) this.controls.update();
+        }
         this.markers.update(time * 0.001);
 
         this.renderer.render(this.scene, this.camera);

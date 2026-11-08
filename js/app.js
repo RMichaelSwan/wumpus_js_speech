@@ -53,6 +53,14 @@ class App {
                 this.viz.updateState(this.game.getStatus());
                 this.terminal.print(`Difficulty set to: ${mode.toUpperCase()}`);
             },
+            onThemeChange: (theme) => {
+                this.viz.setTheme(theme);
+                this.terminal.print(`Visual theme set to: <b>${theme}</b>`);
+            },
+            onAutoZoomToggle: (enabled) => {
+                this.viz.setAutoZoom(enabled);
+                this.terminal.print(`Camera Auto-Zoom on move: <b>${enabled ? 'ON' : 'OFF'}</b>`);
+            },
             onMapChange: (mapName) => {
                 this.changeMap(mapName);
             },
@@ -193,9 +201,10 @@ class App {
             return;
         }
 
-        // Animate move along path
+        // Animate move along path and zoom to destination
         this.viz.animatePlayerMove(res.path, () => {
             this.viz.updateState(this.game.getStatus());
+            this.viz.focusOnRoom(res.finalRoom, true);
         });
 
         if (res.batsInvolved) {

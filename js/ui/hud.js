@@ -8,12 +8,15 @@ export class HUD {
         this.onShootFired = options.onShootFired || (() => {});
         this.onMicToggle = options.onMicToggle || (() => {});
         this.onDifficultyChange = options.onDifficultyChange || (() => {});
+        this.onThemeChange = options.onThemeChange || (() => {});
+        this.onAutoZoomToggle = options.onAutoZoomToggle || (() => {});
         this.onSttEngineChange = options.onSttEngineChange || (() => {});
         this.onMapChange = options.onMapChange || (() => {});
         this.onNewGame = options.onNewGame || (() => {});
         this.onToggleView = options.onToggleView || (() => {});
 
         this.currentMode = 'move'; // 'move' or 'shoot'
+        this.autoZoom = true;
         this.shootTargets = [];
 
         this._render();
@@ -34,6 +37,13 @@ export class HUD {
                     <span class="sense-pill smell-pill" id="pill-smell" style="display:none;">🦨 Wumpus</span>
                 </div>
                 <div class="hud-settings">
+                    <select id="hud-theme" class="hud-select" title="Cave Visual Theme">
+                        <option value="solid_green" selected>Theme: Classic Green (Solid)</option>
+                        <option value="obsidian">Theme: Obsidian Basalt (Solid)</option>
+                        <option value="cave_rock">Theme: Cavern Rock (Solid)</option>
+                        <option value="wireframe_crystal">Theme: Neon Crystal (Translucent)</option>
+                        <option value="deep_space">Theme: Deep Space (Open)</option>
+                    </select>
                     <select id="hud-difficulty" class="hud-select" title="Difficulty / Fog of War">
                         <option value="normal" selected>Normal</option>
                         <option value="hardest">Hardest (Classic)</option>
@@ -45,6 +55,7 @@ export class HUD {
                         <option value="mobius">Möbius</option>
                         <option value="risk">Risk</option>
                     </select>
+                    <button class="btn btn-zoom active" id="btn-auto-zoom" title="Toggle camera auto-zoom on move">Zoom: ON</button>
                 </div>
             </div>
 
@@ -89,9 +100,31 @@ export class HUD {
         const btnFire = this.container.querySelector('#btn-fire-arrow');
         const btnClear = this.container.querySelector('#btn-clear-path');
         const diffSelect = this.container.querySelector('#hud-difficulty');
+        const themeSelect = this.container.querySelector('#hud-theme');
         const mapSelect = this.container.querySelector('#hud-map');
+        const btnZoom = this.container.querySelector('#btn-auto-zoom');
         const btnRestart = this.container.querySelector('#btn-restart');
         const btnToggleView = this.container.querySelector('#btn-view-toggle');
+
+        if (btnZoom) {
+            btnZoom.addEventListener('click', () => {
+                this.autoZoom = !this.autoZoom;
+                if (this.autoZoom) {
+                    btnZoom.classList.add('active');
+                    btnZoom.textContent = 'Zoom: ON';
+                } else {
+                    btnZoom.classList.remove('active');
+                    btnZoom.textContent = 'Zoom: OFF';
+                }
+                this.onAutoZoomToggle(this.autoZoom);
+            });
+        }
+
+        if (themeSelect) {
+            themeSelect.addEventListener('change', (e) => {
+                this.onThemeChange(e.target.value);
+            });
+        }
 
         btnMove.addEventListener('click', () => {
             this.setMode('move');

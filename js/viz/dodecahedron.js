@@ -1,24 +1,131 @@
 import * as THREE from 'three';
 
+export const THEMES = {
+    solid_green: {
+        id: 'solid_green',
+        name: 'Classic Green (Solid)',
+        bodyVisible: true,
+        bodyType: 'phong',
+        bodyProps: {
+            color: 0x35F555,
+            specular: 0xffffff,
+            shininess: 35,
+            flatShading: true,
+            transparent: false,
+            opacity: 1.0
+        },
+        nodeColor: 0x145a27,
+        tunnelColor: 0x1e6f35,
+        tunnelEmissive: 0x072810,
+        background: 0x0c1a12,
+        ambientLight: 0xddffdd,
+        ambientIntensity: 0.8
+    },
+    obsidian: {
+        id: 'obsidian',
+        name: 'Obsidian Basalt (Solid)',
+        bodyVisible: true,
+        bodyType: 'standard',
+        bodyProps: {
+            color: 0x141a22,
+            roughness: 0.35,
+            metalness: 0.8,
+            flatShading: true,
+            transparent: false,
+            opacity: 1.0
+        },
+        nodeColor: 0x223344,
+        tunnelColor: 0x2d3f52,
+        tunnelEmissive: 0x081522,
+        background: 0x0a0e14,
+        ambientLight: 0xddeeff,
+        ambientIntensity: 0.7
+    },
+    cave_rock: {
+        id: 'cave_rock',
+        name: 'Cavern Rock (Solid)',
+        bodyVisible: true,
+        bodyType: 'standard',
+        bodyProps: {
+            color: 0x483627,
+            roughness: 0.9,
+            metalness: 0.1,
+            flatShading: true,
+            transparent: false,
+            opacity: 1.0
+        },
+        nodeColor: 0x3d2b1f,
+        tunnelColor: 0x5a4130,
+        tunnelEmissive: 0x1a0f08,
+        background: 0x100a06,
+        ambientLight: 0xffeedd,
+        ambientIntensity: 0.85
+    },
+    wireframe_crystal: {
+        id: 'wireframe_crystal',
+        name: 'Neon Crystal (Translucent)',
+        bodyVisible: true,
+        bodyType: 'standard',
+        bodyProps: {
+            color: 0x00f0ff,
+            roughness: 0.1,
+            metalness: 0.9,
+            flatShading: true,
+            transparent: true,
+            opacity: 0.22
+        },
+        nodeColor: 0x004466,
+        tunnelColor: 0x0088aa,
+        tunnelEmissive: 0x002e3b,
+        background: 0x060d14,
+        ambientLight: 0xccffff,
+        ambientIntensity: 0.65
+    },
+    deep_space: {
+        id: 'deep_space',
+        name: 'Deep Space (Open / No Body)',
+        bodyVisible: false,
+        bodyType: null,
+        bodyProps: null,
+        nodeColor: 0x223344,
+        tunnelColor: 0x334455,
+        tunnelEmissive: 0x0a1420,
+        background: 0x05070a,
+        ambientLight: 0xddeeff,
+        ambientIntensity: 0.7
+    }
+};
+
 /**
  * Creates and manages the 3D cave graph (dodecahedron nodes and connecting tunnels)
  */
 export class CaveGraph {
-    constructor(scene, mapData) {
+    constructor(scene, mapData, initialTheme = 'solid_green') {
         this.scene = scene;
         this.mapData = mapData;
+        this.currentThemeKey = initialTheme;
         this.graphGroup = new THREE.Group();
         this.scene.add(this.graphGroup);
 
         this.nodeMeshes = new Map(); // roomId -> { sphere, sprite, ring, position, data }
         this.tunnelMeshes = [];      // array of cylinder meshes connecting rooms
         this.tunnelMap = new Map();  // 'min-max' -> cylinder mesh
+        this.bodyMesh = null;
 
         this._buildGraph();
     }
 
     _buildGraph() {
         const rooms = this.mapData.rooms;
+
+        // 0. Solid Dodecahedron Cave Body (if standard map)
+        if (this.mapData.name === 'standard') {
+            const bodyGeom = new THREE.DodecahedronGeometry(146, 0);
+            this.bodyMesh = new THREE.Mesh(bodyGeom);
+            this.bodyMesh.rotation.z = Math.PI / 2;
+            this.bodyMesh.name = 'dodecahedron_body';
+            this.graphGroup.add(this.bodyMesh);
+        }
 
         // 1. Create 3D Nodes
         for (const [idStr, room] of Object.entries(rooms)) {
@@ -219,5 +326,45 @@ export class CaveGraph {
         node.ring.material.color.setHex(color);
         const scale = active ? 1.15 : 1.0;
         node.group.scale.set(scale, scale, scale);
+    }
+
+    /**
+     * Apply a visual theme across cave body, nodes, tunnels, and atmosphere
+     */
+    setTheme(themeKey, scene = null, ambientLight = null) {
+        const theme = THEMES[themeKey] || THEMES.solid_green;
+        this.currentThemeKey = theme.id;
+
+        // Update body mesh
+        if (this.bodyMesh) {
+            this.bodyMesh.visible = theme.bodyVisible;
+            if (theme.bodyVisible && theme.bodyProps) {
+                if (theme.bodyType === 'phong') {
+                    this.bodyMesh.material = new THREE.MeshPhongMaterial(theme.bodyProps);
+                } else {
+                    this.bodyMesh.material = new THREE.MeshStandardMaterial(theme.bodyProps);
+                }
+            }
+        }
+
+        // Update default node spheres
+        for (const node of this.nodeMeshes.values()) {
+            node.sphere.material.color.setHex(theme.nodeColor);
+        }
+
+        // Update default tunnels
+        for (const tunnel of this.tunnelMeshes) {
+            tunnel.material.color.setHex(theme.tunnelColor);
+            tunnel.material.emissive.setHex(theme.tunnelEmissive);
+        }
+
+        // Update scene background & lighting
+        if (scene) {
+            scene.background = new THREE.Color(theme.background);
+        }
+        if (ambientLight) {
+            ambientLight.color = new THREE.Color(theme.ambientLight);
+            ambientLight.intensity = theme.ambientIntensity;
+        }
     }
 }

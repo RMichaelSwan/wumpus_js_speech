@@ -399,6 +399,23 @@ canvas#c {
     color: #c9d8e8;
 }
 
+.btn-zoom {
+    background: #182433;
+    color: #94a3b8;
+    border: 1px solid #2a3c50;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.btn-zoom.active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
 .btn-mic {
     background: #1e293b;
     color: #c9d8e8;

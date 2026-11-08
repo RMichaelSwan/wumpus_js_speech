@@ -2,6 +2,14 @@
 
 A modern, fully responsive, static HTML/JavaScript implementation of the classic game **Hunt the Wumpus**, featuring:
 - **Three.js 0.187.0** interactive 3D cave visualizer (starting with the classic regular dodecahedron map).
+- **Camera Auto-Zoom on Move**: Automatically focuses and zooms in on the player's new room when moving (with a dedicated HUD toggle to enable/disable, default **ON**).
+- **Map Visual Themes**: Choose from multiple solid and translucent styles via the HUD theme selector:
+  - **Classic Green (Solid)**: Authentic retro green faceted dodecahedron with white specular highlights.
+  - **Obsidian Basalt (Solid)**: Dark volcanic stone facets with neon cyber accents.
+  - **Cavern Rock (Solid)**: Warm earthen subterranean rock with torchlit mood.
+  - **Neon Crystal (Translucent)**: Holographic crystal facets with glowing struts.
+  - **Deep Space (Open)**: Floating nodes and tunnels against a deep cosmic void.
+- **Menacing Beast Redesign for the Wumpus**: A terrifying cave predator with a heavy hunched muscular frame, spined dorsal crest, curved obsidian demon horns, 4 piercing fiery glowing eyes, reaching clawed hands, and an aggressive gaping jaw filled with sharp sabre fangs and lower tusks.
 - **Synchronized Multimodal Controls**: Type classic commands, click/touch 3D nodes directly, or speak commands via voice.
 - **Three Fog-of-War Difficulty Tiers**:
   - **Hardest (Classic)**: Strict fog of war — only your current room and immediately connected neighbors are visible. All hazards remain hidden until triggered.
